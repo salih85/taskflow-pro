@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-function Login() {
+function Register() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  const { register, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -14,19 +15,29 @@ function Login() {
     setError('');
 
     try {
-      await login({ email, password });
+      await register({ name, email, password });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
     <div className="page login-page">
       <div className="card auth-card">
-        <h1>Taskflow Pro</h1>
-        <p>Login to manage your projects and Kanban board.</p>
+        <h1>Create your account</h1>
+        <p>Register to manage projects and your Kanban tasks.</p>
         <form onSubmit={handleSubmit}>
+          <label>
+            Name
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              required
+            />
+          </label>
           <label>
             Email
             <input
@@ -48,16 +59,16 @@ function Login() {
             />
           </label>
           <button type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Register'}
           </button>
           {error && <p className="error">{error}</p>}
         </form>
         <p className="hint">
-          Don't have an account? <Link to="/register">Register</Link>
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Register;

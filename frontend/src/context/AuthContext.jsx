@@ -24,12 +24,41 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!token || user) return;
+      try {
+        const response = await api.get('/auth/me');
+        setUser(response.data);
+      } catch (error) {
+        setToken(null);
+        setUser(null);
+      }
+    };
+
+    loadUserProfile();
+  }, [token, user]);
+
   const login = async (credentials) => {
     setLoading(true);
-    const response = await api.post('/auth/login', credentials);
-    setToken(response.data.token);
-    setUser(response.data.user);
-    setLoading(false);
+    try {
+      const response = await api.post('/auth/login', credentials);
+      setToken(response.data.token);
+      setUser(response.data.user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (credentials) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/register', credentials);
+      setToken(response.data.token);
+      setUser(response.data.user);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
@@ -38,7 +67,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, loading }}>
+    <AuthContext.Provider value={{ token, user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
