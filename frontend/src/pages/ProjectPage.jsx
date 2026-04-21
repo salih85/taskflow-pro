@@ -62,6 +62,33 @@ function ProjectPage() {
     }
   };
 
+  const handleUpdateTask = async (taskId, updates) => {
+    try {
+      const response = await api.put(`/tasks/${taskId}`, updates);
+      setTasks((prev) => prev.map((task) => (task._id === taskId ? response.data : task)));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to update task');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      setTasks((prev) => prev.filter((task) => task._id !== taskId));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to delete task');
+    }
+  };
+
+  const handleAddComment = async (taskId, text) => {
+    try {
+      const response = await api.post('/comments', { text, taskId });
+      // For simplicity, not updating tasks, but could add comments to task state
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to add comment');
+    }
+  };
+
   if (loading) {
     return <div className="page">Loading project...</div>;
   }
@@ -115,6 +142,9 @@ function ProjectPage() {
             key={column.key}
             title={column.title}
             tasks={groupedTasks[column.key] || []}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+            onAddComment={handleAddComment}
           />
         ))}
       </section>

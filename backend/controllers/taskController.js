@@ -103,7 +103,7 @@ exports.deleteTask = async (req, res, next) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    await task.remove();
+    await Task.findByIdAndDelete(req.params.id);
     res.json({ message: 'Task deleted' });
   } catch (error) {
     next(error);

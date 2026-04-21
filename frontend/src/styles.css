@@ -271,3 +271,132 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: space-between;
+}
+
+.task-actions button {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.8rem;
+}
+
+.task-actions button:hover:not(:disabled) {
+  background: #cbd5e1;
+}
+
+.task-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.3);
+}
+
+.modal h3 {
+  margin-top: 0;
+}
+
+.modal form {
+  display: grid;
+  gap: 1rem;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.modal textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal button {
+  padding: 0.95rem 1.25rem;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.modal button[type="submit"] {
+  background: #3730a3;
+  color: #fff;
+}
+
+.task-comments {
+  margin-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.task-comments h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.comment {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.task-comments form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.task-comments input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.5rem;
+  background: #f8fafc;
+}
+
+.task-comments button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #3730a3;
+  color: #fff;
+  cursor: pointer;
+}
+
+.task-comments button:hover {
+  background: #312e81;
+}

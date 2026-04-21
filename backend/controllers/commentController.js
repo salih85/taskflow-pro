@@ -30,7 +30,8 @@ exports.addComment = async (req, res, next) => {
       taskId,
     });
 
-    res.status(201).json(comment);
+    const populatedComment = await Comment.findById(comment._id).populate('userId', 'name');
+    res.status(201).json(populatedComment);
   } catch (error) {
     next(error);
   }

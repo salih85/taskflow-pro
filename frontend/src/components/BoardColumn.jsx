@@ -1,13 +1,13 @@
 import TaskCard from './TaskCard';
 
-function BoardColumn({ title, tasks }) {
+function BoardColumn({ title, tasks, onUpdateTask, onDeleteTask, onAddComment }) {
   return (
     <div className="board-column">
       <h3>{title}</h3>
       <div className="board-list">
         {tasks.length === 0 && <p className="board-empty">No tasks yet</p>}
         {tasks.map((task) => (
-          <TaskCard key={task._id} task={task} />
+          <TaskCard key={task._id} task={task} onUpdate={onUpdateTask} onDelete={onDeleteTask} onAddComment={onAddComment} />
         ))}
       </div>
     </div>
