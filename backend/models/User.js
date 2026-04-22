@@ -19,6 +19,26 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  avatar: {
+    type: String, // URL to avatar image
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'manager', 'member'],
+    default: 'member',
+  },
+  department: {
+    type: String,
+    trim: true,
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true,
 });

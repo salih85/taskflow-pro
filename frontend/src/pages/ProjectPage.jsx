@@ -6,7 +6,7 @@ import BoardColumn from '../components/BoardColumn';
 
 const columnLabels = [
   { key: 'todo', title: 'To Do' },
-  { key: 'progress', title: 'In Progress' },
+  { key: 'in-progress', title: 'In Progress' },
   { key: 'done', title: 'Done' },
 ];
 

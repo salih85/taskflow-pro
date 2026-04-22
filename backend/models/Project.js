@@ -21,6 +21,26 @@ const projectSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  color: {
+    type: String, // Hex color code
+  },
+  icon: {
+    type: String, // Icon name or URL
+  },
+  status: {
+    type: String,
+    enum: ['active', 'completed', 'archived'],
+    default: 'active',
+  },
+  startDate: {
+    type: Date,
+  },
+  endDate: {
+    type: Date,
+  },
+  budget: {
+    type: Number,
+  },
 }, {
   timestamps: true,
 });

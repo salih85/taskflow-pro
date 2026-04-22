@@ -12,12 +12,12 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['todo', 'progress', 'done'],
+    enum: ['todo', 'in-progress', 'done'],
     default: 'todo',
   },
   priority: {
     type: String,
-    enum: ['low', 'medium', 'high'],
+    enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium',
   },
   dueDate: {
@@ -31,6 +31,28 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
     required: true,
+  },
+  labels: [{
+    type: String,
+    trim: true,
+  }],
+  attachments: [{
+    type: String, // URLs or file paths
+  }],
+  timeEstimate: {
+    type: Number, // in hours
+  },
+  timeSpent: {
+    type: Number, // in hours
+    default: 0,
+  },
+  dependencies: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+  }],
+  progress: {
+    type: Number, // percentage 0-100
+    default: 0,
   },
 }, {
   timestamps: true,

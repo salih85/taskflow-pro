@@ -22,7 +22,7 @@ exports.getTasksByProject = async (req, res, next) => {
 
 exports.createTask = async (req, res, next) => {
   try {
-    const { title, description, status, priority, dueDate, assignedTo, projectId } = req.body;
+    const { title, description, status, priority, dueDate, assignedTo, projectId, labels, attachments, timeEstimate, timeSpent, dependencies, progress } = req.body;
 
     if (!title || !projectId) {
       return res.status(400).json({ message: 'Task title and projectId are required' });
@@ -46,6 +46,12 @@ exports.createTask = async (req, res, next) => {
       dueDate,
       assignedTo,
       projectId,
+      labels,
+      attachments,
+      timeEstimate,
+      timeSpent,
+      dependencies,
+      progress,
     });
 
     res.status(201).json(task);

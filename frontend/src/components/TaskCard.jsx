@@ -33,7 +33,7 @@ function TaskCard({ task, onUpdate, onDelete, onAddComment }) {
   };
 
   const moveTask = (direction) => {
-    const statuses = ['todo', 'progress', 'done'];
+    const statuses = ['todo', 'in-progress', 'done'];
     const currentIndex = statuses.indexOf(task.status);
     const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     if (newIndex >= 0 && newIndex < statuses.length) {
