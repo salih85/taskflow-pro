@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Project = require('../models/Project');
+const Invite = require('../models/Invite');
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -21,6 +23,20 @@ exports.register = async (req, res, next) => {
     }
 
     const user = await User.create({ name, email, password });
+
+    if (req.body.inviteToken) {
+      const invite = await Invite.findOne({ token: req.body.inviteToken, status: 'pending' });
+      if (invite && invite.email === email && invite.expiresAt > new Date()) {
+        const project = await Project.findById(invite.project);
+        if (project && !project.members.some((member) => member.equals(user._id))) {
+          project.members.push(user._id);
+          await project.save();
+        }
+        invite.status = 'accepted';
+        await invite.save();
+      }
+    }
+
     return res.status(201).json({
       user: {
         id: user._id,

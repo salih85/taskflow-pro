@@ -26,6 +26,9 @@ function ProjectPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState(null);
   const [members, setMembers] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
   const navigate = useNavigate();
   
   const taskModal = useModal();
@@ -51,9 +54,18 @@ function ProjectPage() {
       setProject(projectRes.data);
       setTasks(taskRes.data);
       
-      // Get project members for assignment
       if (projectRes.data.members?.length > 0) {
         setMembers(projectRes.data.members);
+      }
+
+      try {
+        const inviteRes = await api.get(`/projects/${projectId}/invites`);
+        setPendingInvites(inviteRes.data);
+      } catch (inviteErr) {
+        if (inviteErr.response?.status !== 403) {
+          console.warn('Failed to load invites', inviteErr);
+        }
+        setPendingInvites([]);
       }
     } catch (err) {
       error(err.response?.data?.message || 'Failed to load project');
@@ -110,6 +122,25 @@ function ProjectPage() {
     projectModal.close();
   };
 
+  const handleInviteMember = async () => {
+    if (!inviteEmail.trim()) {
+      error('Enter an email to invite');
+      return;
+    }
+
+    setInviteLoading(true);
+    try {
+      await api.post(`/projects/${projectId}/members`, { email: inviteEmail.trim() });
+      success('Invitation sent');
+      setInviteEmail('');
+      fetchProjectData();
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to send invite');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="page"><div className="loading-state">Loading project...</div></div>;
   }
@@ -138,16 +169,47 @@ function ProjectPage() {
           </button>
         </div>
       </div>
-
       <section className="card">
         <div className="section-header">
-          <h2>Tasks</h2>
-          <button className="button primary" onClick={taskModal.open}>
-            + New Task
-          </button>
+          <h2>Project Members</h2>
         </div>
-
-        <SearchFilter tasks={tasks} onFilter={setFilteredTasks} />
+        {project.createdBy?._id === user?.id && (
+          <div className="invite-row">
+            <input
+              type="email"
+              placeholder="Invite team member by email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              disabled={inviteLoading}
+            />
+            <button className="button primary" onClick={handleInviteMember} disabled={inviteLoading}>
+              {inviteLoading ? 'Sending...' : 'Invite'}
+            </button>
+          </div>
+        )}
+        <div className="member-list">
+          {project.members?.length > 0 ? (
+            project.members.map((member) => (
+              <div key={member._id} className="member-item">
+                <span>{member.name}</span>
+                <small>{member.email}</small>
+              </div>
+            ))
+          ) : (
+            <p>No members yet. The project owner can invite teammates.</p>
+          )}
+        </div>
+        {pendingInvites.length > 0 && (
+          <div className="pending-invites">
+            <h3>Pending Invites</h3>
+            {pendingInvites.map((invite) => (
+              <div key={invite._id} className="invite-item">
+                <span>{invite.email}</span>
+                <small>Invited on {new Date(invite.createdAt).toLocaleDateString()}</small>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="board-grid">

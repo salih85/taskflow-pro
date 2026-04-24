@@ -1,6 +1,9 @@
+const crypto = require('crypto');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Invite = require('../models/Invite');
+const { sendEmail } = require('../utils/mailer');
 
 exports.getProjects = async (req, res, next) => {
   try {
@@ -92,9 +95,28 @@ exports.deleteProject = async (req, res, next) => {
     }
 
     await Task.deleteMany({ projectId: project._id });
-    await project.remove();
+    await project.deleteOne();
 
     res.json({ message: 'Project deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getProjectInvites = async (req, res, next) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const isMember = project.createdBy.equals(req.user.id) || project.members.some((member) => member.equals(req.user.id));
+    if (!isMember) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const invites = await Invite.find({ project: project._id, status: 'pending' }).sort({ createdAt: -1 });
+    res.json(invites);
   } catch (error) {
     next(error);
   }
@@ -114,19 +136,51 @@ exports.addProjectMember = async (req, res, next) => {
     }
 
     const userToAdd = await User.findOne({ email });
-    if (!userToAdd) {
-      return res.status(404).json({ message: 'User not found' });
+    const inviteBaseUrl = process.env.INVITE_BASE_URL || 'http://localhost:5173/register?inviteToken=';
+
+    if (userToAdd) {
+      const alreadyMember = project.members.some((member) => member.equals(userToAdd._id));
+      if (alreadyMember) {
+        return res.status(400).json({ message: 'User is already a project member' });
+      }
+
+      project.members.push(userToAdd._id);
+      await project.save();
+
+      await sendEmail({
+        to: userToAdd.email,
+        subject: `Added to project: ${project.title}`,
+        text: `Hi ${userToAdd.name},\n\nYou have been added to the project "${project.title}". Log in to Taskflow Pro to view the project and collaborate with the team.\n\nThanks,\nTaskflow Pro`,
+      });
+
+      return res.json(project);
     }
 
-    const alreadyMember = project.members.some((member) => member.equals(userToAdd._id));
-    if (alreadyMember) {
-      return res.status(400).json({ message: 'User is already a project member' });
-    }
+    const existingInvite = await Invite.findOne({
+      project: project._id,
+      email,
+      status: 'pending',
+      expiresAt: { $gt: new Date() },
+    });
 
-    project.members.push(userToAdd._id);
-    await project.save();
+    const token = existingInvite ? existingInvite.token : crypto.randomBytes(32).toString('hex');
+    const expiresAt = existingInvite ? existingInvite.expiresAt : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    res.json(project);
+    const invite = existingInvite || await Invite.create({
+      project: project._id,
+      email,
+      token,
+      expiresAt,
+    });
+
+    const inviteUrl = `${inviteBaseUrl}${invite.token}`;
+    await sendEmail({
+      to: email,
+      subject: `Invitation to join project: ${project.title}`,
+      text: `Hello,\n\nYou have been invited to join the Taskflow Pro project "${project.title}". Click the link below to register and join the project:\n\n${inviteUrl}\n\nThis invite expires in 7 days.\n\nThanks,\nTaskflow Pro`,
+    });
+
+    res.json({ message: 'Invitation email sent', projectId: project._id });
   } catch (error) {
     next(error);
   }

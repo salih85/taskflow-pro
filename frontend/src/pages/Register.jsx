@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Register() {
@@ -9,13 +9,15 @@ function Register() {
   const [error, setError] = useState('');
   const { register, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('inviteToken');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      await register({ name, email, password });
+      await register({ name, email, password, inviteToken });
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -27,6 +29,11 @@ function Register() {
       <div className="card auth-card">
         <h1>Create your account</h1>
         <p>Register to manage projects and your Kanban tasks.</p>
+        {inviteToken && (
+          <div className="info-message">
+            You were invited to join a project. Complete registration to accept the invitation.
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <label>
             Name
