@@ -34,10 +34,9 @@ function Dashboard() {
     }
   };
 
-  const handleCreateProject = async () => {
-    fetchProjects();
-    success('Project created successfully!');
-    projectModal.close();
+  const handleProjectSaved = async (isEdit = false) => {
+    await fetchProjects();
+    success(isEdit ? 'Project updated successfully!' : 'Project created successfully!');
   };
 
   const handleEditProject = (project, e) => {
@@ -94,7 +93,10 @@ function Dashboard() {
       <section className="card">
         <div className="section-header">
           <h2>Your Projects</h2>
-          <button className="button primary" onClick={projectModal.open}>
+          <button className="button primary" onClick={() => {
+            setSelectedProject(null);
+            projectModal.open();
+          }}>
             + New Project
           </button>
         </div>
@@ -152,7 +154,7 @@ function Dashboard() {
           setSelectedProject(null);
         }}
         project={selectedProject}
-        onSave={handleCreateProject}
+        onSave={() => handleProjectSaved(!!selectedProject)}
       />
 
       <ConfirmModal

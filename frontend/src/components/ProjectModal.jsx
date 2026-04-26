@@ -14,6 +14,8 @@ export function ProjectModal({ isOpen, onClose, project = null, onSave }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteEmails, setInviteEmails] = useState([]);
 
   useEffect(() => {
     if (project) {
@@ -38,6 +40,8 @@ export function ProjectModal({ isOpen, onClose, project = null, onSave }) {
       });
     }
     setError('');
+    setInviteEmail('');
+    setInviteEmails([]);
   }, [project, isOpen]);
 
   const handleInputChange = (e) => {
@@ -46,6 +50,51 @@ export function ProjectModal({ isOpen, onClose, project = null, onSave }) {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleAddInviteEmail = () => {
+    const email = inviteEmail.trim();
+    if (!email) return;
+
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address to invite');
+      return;
+    }
+
+    if (inviteEmails.includes(email)) {
+      setError('This email is already added');
+      return;
+    }
+
+    setInviteEmails((prev) => [...prev, email]);
+    setInviteEmail('');
+    setError('');
+  };
+
+  const handleRemoveInviteEmail = (emailToRemove) => {
+    setInviteEmails((prev) => prev.filter((email) => email !== emailToRemove));
+  };
+
+  const sendInviteEmails = async (projectId) => {
+    if (!inviteEmails.length) return;
+
+    const failedInvites = [];
+
+    for (const email of inviteEmails) {
+      try {
+        await api.post(`/projects/${projectId}/members`, { email });
+      } catch (err) {
+        failedInvites.push(email);
+      }
+    }
+
+    if (failedInvites.length) {
+      throw new Error(`Failed to send invites to: ${failedInvites.join(', ')}`);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -67,19 +116,21 @@ export function ProjectModal({ isOpen, onClose, project = null, onSave }) {
         status: formData.status,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
-        budget: formData.budget ? parseInt(formData.budget) : null,
+        budget: formData.budget ? parseInt(formData.budget, 10) : null,
       };
 
+      let projectResponse;
       if (project) {
-        await api.put(`/projects/${project._id}`, payload);
+        projectResponse = await api.put(`/projects/${project._id}`, payload);
       } else {
-        await api.post('/projects', payload);
+        projectResponse = await api.post('/projects', payload);
       }
 
-      onSave?.();
+      await sendInviteEmails(projectResponse.data._id);
+      onSave?.(projectResponse.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save project');
+      setError(err.response?.data?.message || err.message || 'Failed to save project');
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +244,36 @@ export function ProjectModal({ isOpen, onClose, project = null, onSave }) {
             min="0"
             disabled={isLoading}
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="inviteEmail">Invite Team Members</label>
+          <div className="invite-input-row">
+            <input
+              id="inviteEmail"
+              type="email"
+              name="inviteEmail"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Enter email address"
+              disabled={isLoading}
+            />
+            <button type="button" className="button secondary" onClick={handleAddInviteEmail} disabled={isLoading}>
+              Add
+            </button>
+          </div>
+          {inviteEmails.length > 0 && (
+            <div className="invite-list">
+              {inviteEmails.map((email) => (
+                <div key={email} className="invite-item">
+                  <span>{email}</span>
+                  <button type="button" className="button minimal" onClick={() => handleRemoveInviteEmail(email)} disabled={isLoading}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="modal-actions">

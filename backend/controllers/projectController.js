@@ -42,7 +42,7 @@ exports.getProjectById = async (req, res, next) => {
 
 exports.createProject = async (req, res, next) => {
   try {
-    const { title, description, members } = req.body;
+    const { title, description, color, status, startDate, endDate, budget, members } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: 'Project title is required' });
@@ -51,8 +51,13 @@ exports.createProject = async (req, res, next) => {
     const project = await Project.create({
       title,
       description,
+      color,
+      status,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      budget: budget ?? null,
       createdBy: req.user.id,
-      members: Array.isArray(members) ? [...new Set(members), req.user.id] : [req.user.id],
+      members: Array.isArray(members) ? [...new Set([...members, req.user.id])] : [req.user.id],
     });
 
     res.status(201).json(project);
@@ -72,9 +77,14 @@ exports.updateProject = async (req, res, next) => {
       return res.status(403).json({ message: 'Only the project owner can update this project' });
     }
 
-    const { title, description } = req.body;
+    const { title, description, color, status, startDate, endDate, budget } = req.body;
     if (title !== undefined) project.title = title;
     if (description !== undefined) project.description = description;
+    if (color !== undefined) project.color = color;
+    if (status !== undefined) project.status = status;
+    if (startDate !== undefined) project.startDate = startDate || null;
+    if (endDate !== undefined) project.endDate = endDate || null;
+    if (budget !== undefined) project.budget = budget ?? null;
 
     await project.save();
     res.json(project);
