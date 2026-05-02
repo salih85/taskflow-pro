@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { ProjectModal } from '../components/ProjectModal';
+import { ProfileModal } from '../components/ProfileModal';
 import { ConfirmModal } from '../components/Modal';
 import { ToastContainer } from '../components/Toast';
 import useModal from '../hooks/useModal';
@@ -16,6 +17,7 @@ function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const projectModal = useModal();
+  const profileModal = useModal();
   const { toasts, removeToast, success, error } = useToast();
 
   useEffect(() => {
@@ -79,15 +81,23 @@ function Dashboard() {
           <h1>Welcome, {user?.name || 'User'}</h1>
           <p>Manage your projects and tasks efficiently.</p>
         </div>
-        <button
-          className="button secondary"
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
-        >
-          Logout
-        </button>
+        <div className="header-actions">
+          <button
+            className="button"
+            onClick={profileModal.open}
+          >
+            Profile
+          </button>
+          <button
+            className="button secondary"
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <section className="card">
@@ -155,6 +165,15 @@ function Dashboard() {
         }}
         project={selectedProject}
         onSave={() => handleProjectSaved(!!selectedProject)}
+      />
+
+      <ProfileModal
+        isOpen={profileModal.isOpen}
+        onClose={profileModal.close}
+        user={user}
+        onUpdate={(updatedUser) => {
+          success('Profile updated successfully!');
+        }}
       />
 
       <ConfirmModal

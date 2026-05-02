@@ -8,10 +8,86 @@ export function TaskDetailsModal({ isOpen, onClose, task, onUpdate, onDelete, me
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editData, setEditData] = useState({});
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerStart, setTimerStart] = useState(null);
+  const [subtasks, setSubtasks] = useState([]);
+  const [showAddSubtask, setShowAddSubtask] = useState(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    if (task) {
+      fetchSubtasks();
+      fetchActivities();
+    }
+  }, [task]);
+
+  const fetchSubtasks = async () => {
+    try {
+      const response = await api.get(`/tasks/${task._id}/subtasks`);
+      setSubtasks(response.data);
+    } catch (error) {
+      console.error('Failed to fetch subtasks:', error);
+    }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const response = await api.get(`/activities/${task._id}`);
+      setActivities(response.data);
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
+    }
+  };
+
+  const handleAddSubtask = async () => {
+    if (!newSubtaskTitle.trim()) return;
+    try {
+      await api.post('/tasks', {
+        title: newSubtaskTitle,
+        projectId: task.projectId,
+        parentId: task._id,
+      });
+      setNewSubtaskTitle('');
+      setShowAddSubtask(false);
+      fetchSubtasks();
+    } catch (error) {
+      console.error('Failed to add subtask:', error);
+    }
+  };
+
+  const handleSubtaskStatusChange = async (subtaskId, status) => {
+    try {
+      await api.put(`/tasks/${subtaskId}`, { status });
+      fetchSubtasks();
+    } catch (error) {
+      console.error('Failed to update subtask:', error);
+    }
+  };
 
   if (!task) return null;
 
   const assignedMember = members.find((m) => m._id === task.assignedTo?._id || m._id === task.assignedTo);
+
+  const handleStartTimer = () => {
+    setTimerRunning(true);
+    setTimerStart(Date.now());
+  };
+
+  const handleStopTimer = async () => {
+    if (timerStart) {
+      const elapsed = Math.floor((Date.now() - timerStart) / 1000 / 60 / 60); // hours
+      const newTimeSpent = (task.timeSpent || 0) + elapsed;
+      try {
+        await api.put(`/tasks/${task._id}`, { timeSpent: newTimeSpent });
+        onUpdate?.();
+      } catch (error) {
+        console.error('Failed to update time spent:', error);
+      }
+    }
+    setTimerRunning(false);
+    setTimerStart(null);
+  };
 
   const handleDelete = async () => {
     setIsLoading(true);
@@ -126,6 +202,80 @@ export function TaskDetailsModal({ isOpen, onClose, task, onUpdate, onDelete, me
                 <span>{task.timeSpent} hours</span>
               </div>
             )}
+
+            <div className="meta-item">
+              <label>Progress</label>
+              <span>{task.progress || 0}%</span>
+            </div>
+          </div>
+
+          <div className="task-details-section">
+            <label>Time Tracking</label>
+            <div className="timer-controls">
+              {!timerRunning ? (
+                <button className="button small" onClick={handleStartTimer}>
+                  Start Timer
+                </button>
+              ) : (
+                <button className="button small danger" onClick={handleStopTimer}>
+                  Stop Timer
+                </button>
+              )}
+              {timerRunning && <span className="timer-running">Timer running...</span>}
+            </div>
+          </div>
+
+          <div className="task-details-section">
+            <label>Subtasks</label>
+            <div className="subtasks-list">
+              {subtasks.map((subtask) => (
+                <div key={subtask._id} className="subtask-item">
+                  <input
+                    type="checkbox"
+                    checked={subtask.status === 'done'}
+                    onChange={() => handleSubtaskStatusChange(subtask._id, subtask.status === 'done' ? 'todo' : 'done')}
+                  />
+                  <span className={subtask.status === 'done' ? 'completed' : ''}>{subtask.title}</span>
+                </div>
+              ))}
+            </div>
+            {showAddSubtask ? (
+              <div className="add-subtask">
+                <input
+                  type="text"
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  placeholder="Subtask title"
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddSubtask()}
+                />
+                <button className="button small" onClick={handleAddSubtask}>Add</button>
+                <button className="button small" onClick={() => setShowAddSubtask(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button className="button small" onClick={() => setShowAddSubtask(true)}>
+                Add Subtask
+              </button>
+            )}
+          </div>
+
+          <div className="task-details-section">
+            <label>Activity Log</label>
+            <div className="activity-log">
+              {activities.length === 0 ? (
+                <p>No activities yet.</p>
+              ) : (
+                activities.map((activity) => (
+                  <div key={activity._id} className="activity-item">
+                    <div className="activity-content">
+                      <strong>{activity.userId?.name || 'Unknown'}</strong> {activity.description}
+                    </div>
+                    <div className="activity-time">
+                      {new Date(activity.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {task.description && (

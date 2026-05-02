@@ -50,6 +50,10 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Task',
   }],
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task',
+  },
   progress: {
     type: Number, // percentage 0-100
     default: 0,

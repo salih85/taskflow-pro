@@ -12,6 +12,7 @@ export function TaskModal({ isOpen, onClose, task = null, projectId, onSave, mem
     assignedTo: '',
     labels: '',
     timeEstimate: '',
+    progress: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ export function TaskModal({ isOpen, onClose, task = null, projectId, onSave, mem
         assignedTo: task.assignedTo?._id || task.assignedTo || '',
         labels: task.labels?.join(', ') || '',
         timeEstimate: task.timeEstimate || '',
+        progress: task.progress || 0,
       });
     } else {
       setFormData({
@@ -38,6 +40,7 @@ export function TaskModal({ isOpen, onClose, task = null, projectId, onSave, mem
         assignedTo: '',
         labels: '',
         timeEstimate: '',
+        progress: 0,
       });
     }
     setError('');
@@ -75,6 +78,7 @@ export function TaskModal({ isOpen, onClose, task = null, projectId, onSave, mem
           .map((label) => label.trim())
           .filter((label) => label),
         timeEstimate: formData.timeEstimate ? parseInt(formData.timeEstimate) : null,
+        progress: parseInt(formData.progress) || 0,
       };
 
       if (task) {
@@ -182,6 +186,23 @@ export function TaskModal({ isOpen, onClose, task = null, projectId, onSave, mem
               onChange={handleInputChange}
               placeholder="0"
               min="0"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="progress">Progress (%)</label>
+            <input
+              id="progress"
+              type="number"
+              name="progress"
+              value={formData.progress}
+              onChange={handleInputChange}
+              placeholder="0"
+              min="0"
+              max="100"
               disabled={isLoading}
             />
           </div>

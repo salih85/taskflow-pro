@@ -88,3 +88,36 @@ exports.getProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { name, email, bio } = req.body;
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
+
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.bio = bio !== undefined ? bio : user.bio;
+
+    await user.save();
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      bio: user.bio,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
