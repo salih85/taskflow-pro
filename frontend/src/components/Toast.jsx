@@ -17,6 +17,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }) {
 
   if (!isVisible) return null;
 
+  
   return (
     <div className={`toast toast-${type}`}>
       <span>{message}</span>

@@ -9,6 +9,7 @@ function TaskCard({ task, onClick }) {
     e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task._id }));
   };
 
+  
   const getPriorityColor = (priority) => {
     const colors = {
       low: '#4CAF50',

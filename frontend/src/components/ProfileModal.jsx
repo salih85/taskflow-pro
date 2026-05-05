@@ -107,3 +107,4 @@ export function ProfileModal({ isOpen, onClose, user, onUpdate }) {
     </Modal>
   );
 }
+

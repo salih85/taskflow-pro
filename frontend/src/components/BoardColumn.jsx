@@ -46,4 +46,5 @@ function BoardColumn({ title, tasks, onTaskClick, onStatusChange }) {
   );
 }
 
+
 export default BoardColumn;
