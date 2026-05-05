@@ -3,6 +3,7 @@ import { Modal } from './Modal';
 import { ConfirmModal } from './Modal';
 import api from '../services/api';
 
+
 export function TaskDetailsModal({ isOpen, onClose, task, onUpdate, onDelete, members = [] }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

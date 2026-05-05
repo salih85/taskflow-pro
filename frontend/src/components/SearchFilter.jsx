@@ -56,6 +56,7 @@ export function SearchFilter({ onFilter, tasks = [] }) {
     onFilter(filtered);
   };
 
+  
   const handleClearFilters = () => {
     setSearchTerm('');
     setFilterStatus('all');
