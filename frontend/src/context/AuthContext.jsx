@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (!token || user) return;
+      if (!token) return;
       try {
         const response = await api.get('/auth/me');
         setUser(response.data);
@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
     };
 
     loadUserProfile();
-  }, [token, user]);
+  }, [token]);
 
   const login = async (credentials) => {
     setLoading(true);
