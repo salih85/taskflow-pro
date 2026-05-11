@@ -206,7 +206,12 @@ export function TaskDetailsModal({ isOpen, onClose, task, onUpdate, onDelete, me
 
             <div className="meta-item">
               <label>Progress</label>
-              <span>{task.progress || 0}%</span>
+              <div className="progress-row">
+                <span>{task.progress || 0}%</span>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${task.progress || 0}%` }} />
+                </div>
+              </div>
             </div>
           </div>
 

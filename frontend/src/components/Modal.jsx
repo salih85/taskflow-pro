@@ -6,13 +6,17 @@ export function Modal({ isOpen, onClose, title, children }) {
       if (e.key === 'Escape') onClose();
     };
 
+    const previousOverflow = document.body.style.overflow;
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
     }
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = previousOverflow;
+      document.body.classList.remove('modal-open');
     };
   }, [isOpen, onClose]);
 
@@ -20,7 +24,7 @@ export function Modal({ isOpen, onClose, title, children }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="modal-close" onClick={onClose} aria-label="Close modal">
